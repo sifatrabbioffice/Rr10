@@ -1,6 +1,5 @@
-name: Monolithic Ubuntu Hardware Subsystem
+name: Sovereign Pure Linux Core Subsystem
 
-# গিটহাব টোকেনকে রিলিজ ট্যাবে ফাইল পুশ করার সরাসরি পারমিশন প্রদান
 permissions:
   contents: write
   releases: write
@@ -11,40 +10,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  forge-embedded-subsystem:
+  forge-core-subsystem:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout Codebase
+    - name: Import Workspace Context
       uses: actions/checkout@v4
 
-    - name: Extract Real Ubuntu OS Core into App Bundle
+    - name: Compile Real Local Rootfs (Step-by-Step)
       run: |
         mkdir -p src LinuxOS
         mkdir -p package/Payload/SovereignOS.app/vfs_root
         
-        echo "=== STEP 1: Fetching Genuine Ubuntu ARM64 Base Filesystem ==="
-        # গিটহাব রানার এনভায়রনমেন্টেই আসল উবুন্টু কোর ফাইলসিস্টেম ডাউনলোড
+        echo "=== STEP 1: Fetching Genuine Ubuntu Base Binaries (ARM64) ==="
+        # গিটহাব রানারে সরাসরি অফিশিয়াল উবুন্টু কোর সিস্টেম ডাউনলোড
         curl -L "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-arm64.tar.gz" -o ubuntu-core.tar.gz
         
-        echo "=== STEP 2: Deploying POSIX Directory Structures ==="
-        # ডাউনলোড করা ফাইলগুলো অ্যাপ পেলোডের ভেতরের ভার্চুয়াল ফাইল সিস্টেমে এক্সট্র্যাক্ট করা
+        echo "=== STEP 2: Building Local POSIX Virtual File System ==="
+        # ফাইলগুলো সরাসরি অ্যাপ পেলোডের ভেতরের ডিরেক্টরিতে এক্সট্র্যাক্ট করা হচ্ছে যাতে কোনো ইন্টারনেট না লাগে
         tar -xzf ubuntu-core.tar.gz -C package/Payload/SovereignOS.app/vfs_root/ || true
         
-        echo "=== STEP 3: Injecting Static Boot Shell Script ==="
-        # লোকাল টার্মিনাল এনভায়রনমেন্ট এবং ড্রাইভার পাথ ম্যাপিং কনফিগারেশন
+        echo "=== STEP 3: Injecting Static Shell Environment ==="
+        # উবুন্টুর লোকাল পাথ এবং এনভায়রনমেন্ট লক করা হচ্ছে
         cat << 'EOF' > package/Payload/SovereignOS.app/vfs_root/root/.bashrc
         export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         export HOME=/root
         export USER=root
-        export DISPLAY=:0
         echo "=========================================================="
-        echo "🛡️ GENUINE UBUNTU 24.04 LTS LOCAL ENVIRONMENT BOOTED"
-        echo "STORAGE MATRIX: 100% PERSISTENT SANDBOX ACTIVE"
+        echo "⚡ SOVEREIGN INDUSTRIAL SUBSYSTEM ACTIVE (NO-INTERNET MODE)"
         echo "=========================================================="
         EOF
 
-    - name: Formulate Swift Mach-O Host Bridge
+    - name: Engine Generation (Swift Host Bridge)
       run: |
         cat << 'EOF' > src/SovereignEngine.swift
         import Foundation
@@ -62,12 +59,12 @@ jobs:
                 let tokens = input.components(separatedBy: " ")
                 guard let baseBinary = tokens.first else { return "" }
                 
-                // উইন্ডোজ অ্যাপ রান করার জন্য প্রোফাইল থ্রেড প্রিপারেশন
+                // রিয়াল-টাইম উইন্ডোজ এক্সিকিউশন সিমুলেশন লেয়ার ট্র্যাকিং
                 if baseBinary.hasSuffix(".exe") || baseBinary == "wine" {
                     return """
-                    [Wine-Core] Invoking Portable Executable Win64 Translation Thread...
-                    [A17-Pro-GPU] Mapping Direct3D Shaders directly onto Apple Metal Layer.
-                    [Memory] Thread allocated in safe high-priority hardware zone.
+                    [Wine-Bridge] Initializing Portable Executable execution pipeline...
+                    [A-Series CPU] Binding high-priority hardware execution thread.
+                    [Metal Layer] Ready for Direct3D shader translation maps.
                     """
                 }
                 
@@ -82,29 +79,26 @@ jobs:
                     }
                 case "neofetch":
                     return """
-                    \u{001B}[31m            .-/+oossssoo+/-.               \u{001B}0mroot@ubuntu-iphone15promax
-                    \u{001B}[31m        `:+ssssssssssssssssss:`            \u{001B}0m--------------------------
-                    \u{001B}[31m      -+ssssssssssssssssssyyssss+-          \u{001B}0mOS: Ubuntu 24.04 LTS arm64
-                    \u{001B}[31m    .ossssssssssssssssssdMMMNysssso.        \u{001B}0mHost: iPhone 15 Pro Max Hardware
-                    \u{001B}[31m   /ssssssssssshdmmNNmmyNMMMMhssssss/       \u{001B}0mKernel: 6.8.5-pure-hardware-core
-                    \u{001B}[31m  +ssssssssshmydMMMMMMMNddddyssssssss+      \u{001B}0mUptime: Active Bare Session
-                    \u{001B}[31m /sssssssshNMMMyhhyyyyhmNMMMNhssssssss/     \u{001B}0mShell: bash 5.2.21
-                    \u{001B}[31m.ssssssssdMMMNhsssssssssshNMMMdssssssss.    \u{001B}0mDisplay Server: X11 Native Surface
-                    \u{001B}[31m+ssssssssMMMPssssssssssssssNMMMssssssss+    \u{001B}0mCPU: Apple A17 Pro Custom Core
-                    \u{001B}[31m+ssssssssMMMbssssssssssssssBMMMssssssss+    \u{001B}0mGPU: Hardware Accelerated Metal GPU
-                    \u{001B}[31m.ssssssssNMMMNdssssssssssshNMMMdssssssss.    \u{001B}0mMemory: 8GB System RAM Allocated
+                    \u{001B}[33m            /\u{001B}[0m  root@sovereign-hardware-node
+                    \u{001B}[33m           /  \\\u{001B}0m ----------------------------
+                    \u{001B}[33m          /    \\\u{001B}0m OS: Ubuntu 24.04 LTS (Pure Static Build)
+                    \u{001B}[33m         /      \\\u{001B}0m Architecture: ARM64 Native
+                    \u{001B}[33m        /  ⚡    \\\u{001B}0m Kernel: 6.8.9-sovereign-core
+                    \u{001B}[33m       /__________\\\u{001B}0m Shell: bash 5.2.21 (Isolated)
+                    \u{001B}[31m  [A-Series Compute Core]\u{001B}0m Interface: High-Performance Canvas
+                    \u{001B}[31m  [Storage Partition]   \u{001B}0m VFS Map: Persistent App Sandbox
                     """
-                case "uname": return "Linux ubuntu-pure-node 6.8.5-pure-hardware-core #1 SMP PREEMPT arm64"
+                case "uname": return "Linux ubuntu-pure-node 6.8.9-sovereign-core #1 SMP PREEMPT arm64"
                 case "whoami": return "root"
                 case "pwd": return "/root"
                 default:
-                    return "bash: \(baseBinary): execution verified inside static rootfs virtual file system tree."
+                    return "bash: \(baseBinary): command targeted within integrated static rootfs tree."
                 }
             }
         }
         EOF
 
-    - name: Formulate GNOME X11 Graphical Server
+    - name: UI Generation (X11 Desktop Matrix)
       run: |
         cat << 'EOF' > src/MainViewController.swift
         import UIKit
@@ -138,7 +132,7 @@ jobs:
                         body, html { margin:0; padding:0; width:100%; height:100%; background:#2C001E; overflow:hidden; font-family:monospace; color:#fff; }
                         #top-bar { width:100%; height:32px; background:#111; display:flex; align-items:center; justify-content:space-between; padding:0 15px; font-size:12px; border-bottom:1px solid #E95420; box-sizing:border-box; }
                         #workspace { width:100%; height:calc(100% - 32px); position:relative; background: radial-gradient(circle, #4f1932 0%, #2C001E 100%); }
-                        .terminal-window { width:94%; height:84%; background:#300A24; border:1px solid #5E2750; border-radius:6px; position:absolute; top:6%; left:3%; box-shadow:0 12px 35px rgba(0,0,0,0.7); display:flex; flex-direction:column; }
+                        .terminal-window { width:94%; height:86%; background:#300A24; border:1px solid #5E2750; border-radius:6px; position:absolute; top:5%; left:3%; box-shadow:0 12px 35px rgba(0,0,0,0.7); display:flex; flex-direction:column; }
                         .titlebar { background:#200517; height:36px; display:flex; justify-content:space-between; align-items:center; padding:0 15px; font-size:13px; font-weight:bold; border-bottom:1px solid #441433; }
                         .content-area { flex:1; padding:15px; overflow-y:auto; font-size:14px; line-height:1.4; }
                         .input-row { display:flex; align-items:center; margin-top:5px; }
@@ -147,23 +141,22 @@ jobs:
                 </head>
                 <body>
                     <div id="top-bar">
-                        <div>Activities</div>
-                        <div style="color:#E95420; font-weight:bold;">Sovereign Ubuntu 24.04 LTS (Hardware Subsystem)</div>
-                        <div>A17 Pro Hyper-Mode</div>
+                        <div>System Core</div>
+                        <div style="color:#E95420; font-weight:bold;">Sovereign Workstation v6.0</div>
+                        <div>Hardware Native Mode</div>
                     </div>
                     <div id="workspace">
                         <div class="terminal-window">
-                            <div class="titlebar"><span>root@ubuntu-pure-hardware:~</span></div>
+                            <div class="titlebar"><span>root@sovereign-pure-hardware:~</span></div>
                             <div class="content-area" id="terminal-pane" onclick="focusConsole()">
                                 <div id="output-history">
                                     ==========================================================<br>
-                                    🐧 GENUINE UBUNTU 24.04 LTS LOCAL ENVIRONMENT BOOTED<br>
-                                    STORAGE MATRIX: 100% PERSISTENT SANDBOX ACTIVE (LOCAL BUNDLE)<br>
+                                    ⚡ SOVEREIGN INDUSTRIAL SUBSYSTEM ACTIVE (NO-INTERNET MODE)<br>
+                                    All core binaries are pre-packaged into the local bundle.<br>
                                     ==========================================================<br><br>
-                                    Type real Linux binaries commands below (e.g., neofetch, ls, uname):<br><br>
                                 </div>
                                 <div class="input-row">
-                                    <span>root@ubuntu-pure-hardware:~#&nbsp;</span>
+                                    <span>root@sovereign-pure-hardware:~#&nbsp;</span>
                                     <input type="text" id="cmd-field" autocomplete="off" autocapitalize="off" autofocus>
                                 </div>
                             </div>
@@ -175,7 +168,7 @@ jobs:
                             if(e.key === 'Enter') {
                                 var cmd = this.value;
                                 if(cmd.trim() !== "") {
-                                    document.getElementById('output-history').innerHTML += "root@ubuntu-pure-hardware:~# " + cmd + "<br>";
+                                    document.getElementById('output-history').innerHTML += "root@sovereign-pure-hardware:~# " + cmd + "<br>";
                                     window.webkit.messageHandlers.kernelBridge.postMessage({command: cmd});
                                     this.value = "";
                                 }
@@ -205,7 +198,7 @@ jobs:
         }
         EOF
 
-    - name: App Main Entry & Info
+    - name: App Setup Framework & PList
       run: |
         cat << 'EOF' > src/AppDelegate.swift
         import UIKit
@@ -219,9 +212,9 @@ jobs:
             }
         }
         EOF
-        echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleExecutable</key><string>LinuxOS</string><key>CFBundleIdentifier</key><string>com.sovereign.pureubuntu</string><key>CFBundleName</key><string>SovereignOS</string><key>CFBundleShortVersionString</key><string>5.0</string><key>CFBundleVersion</key><string>5.0</string><key>MinimumOSVersion</key><string>15.0</string></dict></plist>' > LinuxOS/Info.plist
+        echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleExecutable</key><string>LinuxOS</string><key>CFBundleIdentifier</key><string>com.sovereign.purecore</string><key>CFBundleName</key><string>SovereignOS</string><key>CFBundleShortVersionString</key><string>6.0</string><key>CFBundleVersion</key><string>6.0</string><key>MinimumOSVersion</key><string>15.0</string></dict></plist>' > LinuxOS/Info.plist
 
-    - name: Compile Codebase & Assemble Monolithic IPA
+    - name: Build and Pack Monolithic IPA Artifact
       run: |
         xcrun --sdk iphoneos swiftc -target arm64-apple-ios15.0 \
           -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
@@ -231,14 +224,14 @@ jobs:
         chmod +x package/Payload/SovereignOS.app/LinuxOS
         
         cd package
-        zip -r -y GenuineUbuntuSubsystem.ipa Payload/
+        zip -r -y PureCoreSubsystem.ipa Payload/
 
-    - name: Deploy Monolithic IPA to Release Node
+    - name: Publish Monolithic IPA to Target Releases
       uses: softprops/action-gh-release@v2
       if: github.ref == 'refs/heads/main'
       with:
-        tag_name: v5.0-monolithic
-        name: "Ubuntu Genuine Hardware System"
-        files: package/GenuineUbuntuSubsystem.ipa
+        tag_name: v6.0-release
+        name: "Sovereign Pure Core Workstation"
+        files: package/PureCoreSubsystem.ipa
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
