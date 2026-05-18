@@ -25,7 +25,6 @@ jobs:
             static let shared = LinuxEngine()
             private let fileManager = FileManager.default
             
-            // সিস্টেম ভেরিয়েবল এবং ভার্চুয়াল মেমোরি রেজিস্টার সমূহ
             private var isJitEnabled: Bool = false
             private var virtualRegisters: [String: UInt64] = [:]
             
@@ -41,14 +40,11 @@ jobs:
                 detectJitStatus()
             }
             
-            // JIT এবং JIT-less মোড স্বয়ংক্রিয়ভাবে ডিটেক্ট করার কার্নেল লজিক
             private func detectJitStatus() {
-                // ম্যাপড মেমোরি পেজে রাইট এবং এক্সিকিউট (WX) প্রিভিলেজ টেস্ট
                 let pageSize = sysconf(_SC_PAGESIZE)
                 var startAddress = mmap(nil, pageSize, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0)
                 
                 if startAddress != MAP_FAILED {
-                    // যদি মেমোরি প্রোটেকশন পরিবর্তন করে এক্সিকিউটেবল করা যায়, তবে JIT একটিভ আছে
                     let jitCheck = mprotect(startAddress, pageSize, PROT_READ | PROT_EXEC)
                     isJitEnabled = (jitCheck == 0)
                     munmap(startAddress, pageSize)
@@ -61,7 +57,6 @@ jobs:
                 return isJitEnabled ? "MODE: JIT Dynamic Core (Maximum Performance)" : "MODE: JIT-less Interpreter (Smooth & Safe)"
             }
             
-            // সম্পূর্ণ নতুন সিস্টেম ফাইল, ফোল্ডার এবং স্টোরেজ ইনভেন্ট করার ইঞ্জিন
             func deploySovereignOS(onProgress: @escaping (String) -> Void, completion: @escaping (Bool, String) -> Void) {
                 if fileManager.fileExists(atPath: ubuntuStorageDrive.path) {
                     completion(true, "Storage Allocation Confirmed: Ubuntu Core Online.")
@@ -72,10 +67,8 @@ jobs:
                 
                 DispatchQueue.global(qos: .userInteractive).async {
                     do {
-                        // ১. মূল উবুন্টু ভার্চুয়াল ড্রাইভ ফোল্ডার তৈরি
                         try self.fileManager.createDirectory(at: self.ubuntuStorageDrive, withIntermediateDirectories: true, attributes: nil)
                         
-                        // ২. লিনাক্সের ফাইল হায়ারার্কি স্ট্যান্ডার্ড (FHS) অনুযায়ী ফোল্ডার সিস্টেম জেনারেশন
                         let systemFolders = [
                             "bin", "sbin", "etc/apt/sources.list.d", "usr/bin", "usr/sbin", "usr/local/bin",
                             "var/lib/dpkg/info", "var/log/apt", "root", "home/ubuntu/Downloads", "home/ubuntu/Documents",
@@ -86,11 +79,9 @@ jobs:
                             try self.fileManager.createDirectory(at: self.ubuntuStorageDrive.appendingPathComponent(folder), withIntermediateDirectories: true, attributes: nil)
                         }
                         
-                        // ৩. APT প্যাকেজ ডাটাবেস ও রিয়েল স্ট্যাটাস ফাইল কনফিগারেশন
                         let dpkgStatus = self.ubuntuStorageDrive.appendingPathComponent("var/lib/dpkg/status")
                         try "Package: base-files\nStatus: install ok installed\nArchitecture: arm64\nVersion: 24.04\n\n".write(to: dpkgStatus, atomically: true, encoding: .utf8)
                         
-                        // ৪. অফিশিয়াল মিরর লিস্ট এবং সোর্স ফাইল ইনজেকশন
                         let sourcesList = self.ubuntuStorageDrive.appendingPathComponent("etc/apt/sources.list")
                         let mirrorData = """
                         deb http://ports.ubuntu.com/ubuntu-ports noble main restricted universe multiverse
@@ -99,7 +90,6 @@ jobs:
                         """
                         try mirrorData.write(to: sourcesList, atomically: true, encoding: .utf8)
                         
-                        // ৫. এনভায়রনমেন্ট প্রোফাইল ড্রাফট তৈরি
                         let profilePath = self.ubuntuStorageDrive.appendingPathComponent("root/.bashrc")
                         let profileData = "export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\nexport USER=root\nexport HOME=/root\n"
                         try profileData.write(to: profilePath, atomically: true, encoding: .utf8)
@@ -115,19 +105,16 @@ jobs:
                 }
             }
             
-            // বাইনারি ট্রান্সলেশন প্রসেসর (সত্যিকারের প্যাকেজ ইনস্টলেশন ও এক্সিকিউশন সিমুলেটর)
             func executeVirtualInstruction(_ inputCommand: String) -> String {
                 let formatted = inputCommand.trimmingCharacters(in: .whitespacesAndNewlines)
                 let tokens = formatted.components(separatedBy: " ")
                 guard let baseBinary = tokens.first else { return "" }
                 
-                // রিয়েল-টাইম APT প্যাকেজ ম্যানেজার এবং ডিপেন্ডেন্সি ট্র্যাকার লজিক
                 if baseBinary == "apt" || baseBinary == "apt-get" {
                     if tokens.contains("install") {
                         let targetPackage = tokens.last ?? ""
                         if targetPackage == "install" || targetPackage.isEmpty { return "E: Command line option 'install' requires an argument." }
                         
-                        // বাইনারি ফাইল সিস্টেমে নতুন এক্সিকিউটেবল ব্লক রেজিস্ট্রি করা
                         let binaryOutputUrl = ubuntuStorageDrive.appendingPathComponent("usr/bin/\(targetPackage)")
                         let binaryPayload = "#!/bin/bash\necho 'Sovereign Core Executed: \(targetPackage) running on iOS ARM64'"
                         try? binaryPayload.write(to: binaryOutputUrl, atomically: true, encoding: .utf8)
@@ -136,27 +123,20 @@ jobs:
                         Reading package lists... Done
                         Building dependency tree... Done
                         Reading state information... Done
-                        The following additional packages will be installed:
-                          \(targetPackage)-core lib\(targetPackage)0
-                        Suggested packages:
-                          \(targetPackage)-doc
                         The following NEW packages will be installed:
                           \(targetPackage)
                         0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
                         Need to get 2,840 kB of archives.
-                        Get:1 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 \(targetPackage) [2,840 kB]
                         Unpacking \(targetPackage) (arm64) inside isolated container drive...
                         Setting up permissions (chmod +x /usr/bin/\(targetPackage))...
                         Status: Installation Complete. Run '\(targetPackage)' to execute.
                         """
                     }
-                    
                     if tokens.contains("update") {
                         return "Hit:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease\nReading package lists... Done\nAll system packages are up to date."
                     }
                 }
                 
-                // কোর লিনাক্স কমান্ড ইন্টারপ্রেটার
                 switch baseBinary {
                 case "uname":
                     return "Linux ubuntu-sovereign-node 6.8.0-31-generic #31-Ubuntu SMP PREEMPT_DYNAMIC \(isJitEnabled ? "ARM64-JIT-CORE" : "ARM64-INTERPRETER") GNU/Linux"
@@ -178,7 +158,6 @@ jobs:
                 case "pwd": return "/root"
                 case "clear": return "EXEC_CLEAR_SCREEN"
                 default:
-                    // যদি কোন বাইনারি পূর্বে ইনস্টল করা থাকে, তবে তার পারসিস্টেন্ট এক্সিকিউশন
                     let customBin = ubuntuStorageDrive.appendingPathComponent("usr/bin/\(baseBinary)")
                     if fileManager.fileExists(atPath: customBin.path) {
                         return (try? String(contentsOf: customBin, encoding: .utf8)) ?? "\(baseBinary): Execution block tracking active."
@@ -189,7 +168,7 @@ jobs:
         }
         EOF
 
-        # 2. SOVEREIGN ENGINE HOME DASHBOARD (Core UI Controller)
+        # 2. SOVEREIGN ENGINE HOME DASHBOARD (Core UI Controller) - FIXED WITH 'func' KEYWORD
         cat << 'EOF' > src/MainViewController.swift
         import UIKit
 
@@ -258,7 +237,7 @@ jobs:
                 setupHierarchy()
             }
             
-            private setupHierarchy() {
+            private func setupHierarchy() {
                 view.addSubview(statusTerminalView)
                 view.addSubview(actionControl)
                 view.addSubview(consoleLaunchStack)
@@ -287,7 +266,6 @@ jobs:
                     consoleLaunchStack.heightAnchor.constraint(equalToConstant: 102)
                 ])
                 
-                // সিস্টেম ইনফো এবং মোড রেন্ডারিং
                 let engineModeStr = LinuxEngine.shared.getEngineStatus()
                 statusTerminalView.text = "SOVEREIGN SYSTEM KERNEL V3.0 INITIALIZED.\n\(engineModeStr)\n\nReady to map pure root filesystem pages on hardware storage blocks..."
             }
@@ -450,25 +428,17 @@ jobs:
                     <style>
                         body, html { margin:0; padding:0; width:100%; height:100%; background-color:#111; overflow:hidden; font-family:-apple-system, BlinkMacSystemFont, sans-serif; user-select: none; }
                         #desktop-matrix { width:100%; height:100%; background: radial-gradient(circle, #5E2750 0%, #E95420 100%); position:relative; }
-                        
-                        /* GNOME Shell Top Taskbar */
                         #top-taskbar { width:100%; height:30px; background-color:rgba(0,0,0,0.95); position:absolute; top:0; left:0; display:flex; justify-content:space-between; align-items:center; padding:0 15px; font-size:13px; color:#fff; box-sizing:border-box; z-index:1000; }
                         .menu-node { display:flex; align-items:center; gap:15px; }
-                        
-                        /* Left Edge Dock Launcher */
                         #gnome-dock { width:54px; height:80%; background-color:rgba(18,18,18,0.88); position:absolute; left:10px; top:10%; border-radius:12px; display:flex; flex-direction:column; align-items:center; padding:20px 0; gap:20px; box-sizing:border-box; border:1px solid rgba(255,255,255,0.1); z-index:999; }
                         .app-trigger { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; cursor:pointer; }
                         .app-terminal { background-color:#300A24; border:1px solid #5E2750; }
                         .app-software { background-color:#E95420; }
                         .app-files { background-color:#2c2c2c; }
-                        
-                        /* Window Sub-System Layouts */
                         .x11-container { width:84%; height:60%; background-color:#242424; border:1px solid #444; border-radius:8px; position:absolute; top:15%; left:12%; box-shadow:0 15px 35px rgba(0,0,0,0.6); display:none; flex-direction:column; overflow:hidden; z-index:100; }
                         .win-bar { background-color:#1c1c1c; height:36px; display:flex; justify-content:space-between; align-items:center; padding:0 15px; font-size:13px; color:#eaeaea; font-weight:600; border-bottom:1px solid #333; }
                         .dot-close { width:12px; height:12px; background-color:#ff5f56; border-radius:50%; cursor:pointer; }
                         .win-canvas { flex:1; padding:15px; color:#fff; font-size:13px; background-color:#1a1a1a; overflow-y:auto; }
-                        
-                        /* Interactive Elements inside apps */
                         .pkg-row { background:#222; border:1px solid #333; padding:12px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
                         .btn-apt { background:#E95420; color:white; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:bold; }
                     </style>
@@ -487,7 +457,6 @@ jobs:
                             <div class="app-trigger app-files" onclick="toggleXWindow('nautilus-files')">📂</div>
                         </div>
                         
-                        <!-- MODULE A: APT SYSTEM SOFTWARE CENTER -->
                         <div id="apt-software" class="x11-container">
                             <div class="win-bar">
                                 <span>Ubuntu Advanced Package Manager</span>
@@ -510,7 +479,6 @@ jobs:
                             </div>
                         </div>
                         
-                        <!-- MODULE B: LIVE TERMINAL DISPLAY -->
                         <div id="terminal-x11" class="x11-container">
                             <div class="win-bar">
                                 <span>ubuntu@hypervisor-node: ~</span>
@@ -521,7 +489,6 @@ jobs:
                             </div>
                         </div>
 
-                        <!-- MODULE C: NAUTILUS PERSISTENT STORAGE VIEW -->
                         <div id="nautilus-files" class="x11-container">
                             <div class="win-bar">
                                 <span>Nautilus Storage Subsystem</span>
@@ -545,15 +512,11 @@ jobs:
                         function closeXWindow(id) {
                             document.getElementById(id).style.display = "none";
                         }
-                        
                         function triggerSovereignApt(pkg) {
                             document.getElementById('target-'+pkg).innerText = "Compiling...";
                             document.getElementById('target-'+pkg).style.background = "#444";
-                            
-                            // Swift Hypervisor ব্যাকগ্রাউন্ড লুপে ইন্সট্রাকশন পাঠানো
                             window.webkit.messageHandlers.sovereignCoreBridge.postMessage({command: "apt install " + pkg, targetBin: pkg});
                         }
-                        
                         function pipeHostTerminal(logData) {
                             var container = document.getElementById('runtime-console-stream');
                             container.innerHTML += "<br>" + logData.replace(/\\n/g, "<br>");
@@ -565,13 +528,11 @@ jobs:
                 dynamicX11Canvas.loadHTMLString(htmlStructure, baseURL: nil)
             }
             
-            // Javascript Intercept Handler
             func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
                 guard let dict = message.body as? [String: Any],
                       let commandLine = dict["command"] as? String,
                       let targetBin = dict["targetBin"] as? String else { return }
                 
-                // Swift হাইপারভাইজার ইঞ্জিনে আসল অপারেশন সম্পাদন
                 let outputLog = LinuxEngine.shared.executeVirtualInstruction(commandLine)
                 let escapedLog = outputLog.replacingOccurrences(of: "\n", with: "\\n")
                 
