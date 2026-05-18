@@ -69,13 +69,11 @@ jobs:
                     do {
                         try self.fileManager.createDirectory(at: self.ubuntuRootfsPath, withIntermediateDirectories: true, attributes: nil)
                         
-                        // আইফোনের স্যান্ডবক্সে রিয়েল রুট বাইনারি ও প্যাকেজ ডিরেক্টরি ক্রিয়েশন ও ম্যাপিং
                         let baseDirs = ["bin", "sbin", "usr/bin", "usr/sbin", "etc/apt", "var/lib/dpkg", "proc", "sys", "dev", "root", "home/ubuntu"]
                         for dir in baseDirs {
                             try self.fileManager.createDirectory(at: self.ubuntuRootfsPath.appendingPathComponent(dir), withIntermediateDirectories: true, attributes: nil)
                         }
                         
-                        // Wine/Proton এবং X11 কনফিগ স্ক্রিপ্ট ইনজেকশন
                         let bashrcPath = self.ubuntuRootfsPath.appendingPathComponent("root/.bashrc")
                         let bashrcPayload = """
                         export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -95,7 +93,6 @@ jobs:
                     }
                 }
                 
-                // ডাউনলোড ট্র্যাকিং লুপ পর্যবেক্ষণ
                 downloadTask.resume()
             }
             
@@ -120,18 +117,18 @@ jobs:
                     return "Hit:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease\nReading package lists... Done"
                 case "neofetch":
                     return """
-                    \u{001B}[31m            .-/+oossssoo+/-.               \u{001B}[0mroot@ubuntu-iphone15promax
-                    \u{001B}[31m        `:+ssssssssssssssssss:`            \u{001B}[0m--------------------------
-                    \u{001B}[31m      -+ssssssssssssssssssyyssss+-          \u{001B}[0mOS: Ubuntu 24.04 LTS arm64
-                    \u{001B}[31m    .ossssssssssssssssssdMMMNysssso.        \u{001B}[0mHost: iPhone15ProMax (A17 Pro)
-                    \u{001B}[31m   /ssssssssssshdmmNNmmyNMMMMhssssss/       \u{001B}[0mKernel: 6.8.0-sovereign-subsystem
-                    \u{001B}[31m  +ssssssssshmydMMMMMMMNddddyssssssss+      \u{001B}[0mUptime: 2 mins
-                    \u{001B}[31m /sssssssshNMMMyhhyyyyhmNMMMNhssssssss/     \u{001B}[0mShell: bash 5.2.21
-                    \u{001B}[31m.ssssssssdMMMNhsssssssssshNMMMdssssssss.    \u{001B}[0mDisplay Server: X11 Server native
-                    \u{001B}[31m+ssssssssMMMPssssssssssssssNMMMssssssss+    \u{001B}[0mCPU: Apple A17 Pro (6 Cores)
-                    \u{001B}[31m+ssssssssMMMbssssssssssssssBMMMssssssss+    \u{001B}[0mGPU: Apple Custom 6-Core GPU
-                    \u{001B}[31m.ssssssssNMMMNdssssssssssshNMMMdssssssss.    \u{001B}[0mMemory: 4320MiB / 8192MiB
-                     \u{001B}[31m/sssssssshmMMMMNmdmmNNmmyNMMMMhssssss/     \u{001B}[0m
+                    \u{001B}[31m            .-/+oossssoo+/-.               \u{001B}0mroot@ubuntu-iphone15promax
+                    \u{001B}[31m        `:+ssssssssssssssssss:`            \u{001B}0m--------------------------
+                    \u{001B}[31m      -+ssssssssssssssssssyyssss+-          \u{001B}0mOS: Ubuntu 24.04 LTS arm64
+                    \u{001B}[31m    .ossssssssssssssssssdMMMNysssso.        \u{001B}0mHost: iPhone15ProMax (A17 Pro)
+                    \u{001B}[31m   /ssssssssssshdmmNNmmyNMMMMhssssss/       \u{001B}0mKernel: 6.8.0-sovereign-subsystem
+                    \u{001B}[31m  +ssssssssshmydMMMMMMMNddddyssssssss+      \u{001B}0mUptime: 2 mins
+                    \u{001B}[31m /sssssssshNMMMyhhyyyyhmNMMMNhssssssss/     \u{001B}0mShell: bash 5.2.21
+                    \u{001B}[31m.ssssssssdMMMNhsssssssssshNMMMdssssssss.    \u{001B}0mDisplay Server: X11 Server native
+                    \u{001B}[31m+ssssssssMMMPssssssssssssssNMMMssssssss+    \u{001B}0mCPU: Apple A17 Pro (6 Cores)
+                    \u{001B}[31m+ssssssssMMMbssssssssssssssBMMMssssssss+    \u{001B}0mGPU: Apple Custom 6-Core GPU
+                    \u{001B}[31m.ssssssssNMMMNdssssssssssshNMMMdssssssss.    \u{001B}0mMemory: 4320MiB / 8192MiB
+                     \u{001B}[31m/sssssssshmMMMMNmdmmNNmmyNMMMMhssssss/     \u{001B}0m
                     """
                 case "uname": return "Linux ubuntu-node 6.8.0-sovereign-subsystem #1 SMP PREEMPT arm64 GNU/Linux"
                 case "ls": return "bin  boot  dev  etc  home  lib  mnt  proc  root  run  sbin  sys  tmp  usr  var"
